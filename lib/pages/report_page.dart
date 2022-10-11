@@ -9,8 +9,14 @@ class ReportPage extends StatefulWidget {
   @override
   State<ReportPage> createState() => _ReportPageState();
 }
-
 class _ReportPageState extends State<ReportPage> {
+  late TextEditingController _textEditingController;
+  @override
+  void initState() {
+    // TODO: implement initState
+    _textEditingController = TextEditingController();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     var heightM = MediaQuery.of(context).size.height;
@@ -26,9 +32,9 @@ class _ReportPageState extends State<ReportPage> {
           margin: const EdgeInsets.symmetric(vertical: 24,horizontal: 32),
           child: Column(
             children: [
-              const MyTextField(text: 'Tiêu đề',),
+               MyTextField(text: 'Tiêu đề', textEditingController: _textEditingController,),
               const SizedBox(height: 16,),
-              const MyTextField(text: 'Nội dung',minLines: 3,maxLines: 5,),
+               MyTextField(text: 'Nội dung',minLines: 3,maxLines: 5, textEditingController: _textEditingController,),
               const SizedBox(height: 16,),
               GridView.builder(
                 shrinkWrap: true,

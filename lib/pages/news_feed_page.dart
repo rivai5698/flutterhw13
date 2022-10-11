@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutterhw13/common/my_dialog.dart';
 import 'package:flutterhw13/common/photo_grid.dart';
+import 'package:flutterhw13/pages/change_password_page.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/report_page.dart';
 
@@ -168,9 +170,14 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         if (drawerModel.id == 1) {
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => const ReportPage()));
-        } else if (drawerModel.id == 5) {
+        }else if (drawerModel.id == 2) {
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const LoginPage()));
+              context, MaterialPageRoute(builder: (_) => const ChangePasswordPage()));
+        }
+        else if (drawerModel.id == 5) {
+          MyDialog(context).showDialog(const LoginPage());
+//          Navigator.pushReplacement(
+//              context, MaterialPageRoute(builder: (_) => const LoginPage()));
         } else {}
       },
       child: Container(

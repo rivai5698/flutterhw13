@@ -8,8 +8,9 @@ class MyButton extends StatefulWidget {
   final String text;
   final Color textColor;
   final VoidCallback onPressed;
+  final bool isEnable;
 
-  const MyButton({super.key, this.color = colorConst, this.width = double.infinity, this.height = 50, required this.text, this.textColor = Colors.black, required this.onPressed});
+  const MyButton({super.key, this.color = colorConst, this.width = double.infinity, this.height = 50, required this.text, this.textColor = Colors.black, required this.onPressed, this.isEnable = false});
 
 
 
@@ -26,7 +27,7 @@ class _MyButtonState extends State<MyButton> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: widget.color,
+          color: widget.isEnable ? widget.color : Colors.grey,
           borderRadius: BorderRadius.circular(4),
         ),
         width: widget.width,

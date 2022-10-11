@@ -4,12 +4,14 @@ const textCapitalizationConst = TextCapitalization.sentences;
 class MyTextField extends StatefulWidget {
   final String text;
   final TextInputType textInputType;
+  final TextEditingController textEditingController;
   final int maxLength;
   final bool obscureText;
   final TextCapitalization textCapitalization;
   final int maxLines,minLines;
-
-  const MyTextField({super.key, required this.text, this.textInputType = TextInputType.text, this.maxLength = 100, this.obscureText = false, this.textCapitalization = textCapitalizationConst, this.maxLines = 1, this.minLines = 1});
+  final TextInputAction textInputAction;
+  final Function(String)? onSubmitted;
+  const MyTextField({super.key, required this.text, this.textInputType = TextInputType.text, this.maxLength = 100, this.obscureText = false, this.textCapitalization = textCapitalizationConst, this.maxLines = 1, this.minLines = 1, required this.textEditingController, this.textInputAction=TextInputAction.next, this.onSubmitted});
 
 
 
@@ -27,7 +29,10 @@ class _MyTextFieldsState extends State<MyTextField> {
         minLines: widget.minLines,
         maxLength: widget.maxLength,
         obscureText: widget.obscureText,
+        controller: widget.textEditingController,
         autocorrect: false,
+        textInputAction: widget.textInputAction,
+        onSubmitted: widget.onSubmitted,
         decoration: InputDecoration(
           counterText: '',
           labelText: widget.text,
