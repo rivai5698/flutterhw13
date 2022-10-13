@@ -1,9 +1,7 @@
-import 'dart:convert';
 
-import 'package:flutterhw13/model_2/ResponseData.dart';
+import 'package:flutterhw13/model/PasswordModel.dart';
 import 'package:flutterhw13/services/api_service.dart';
 import '../model/User.dart';
-import 'package:flutterhw13/model/Data.dart';
 
 extension UserService on ApiService{
 
@@ -43,9 +41,39 @@ extension UserService on ApiService{
       method: Method.post,
     );
     final user = User.fromJson(result);
-    print('register: ${user}');
     return user;
   }
 
+  Future<User> update({required String name,
+          required String dob,
+          required String address,
+          required String email,
+          bool? gender,
+          String? avtUrl,
+  }) async {
+    final body = {
+      "Name": name,
+      "DateOfBirth" : dob,
+      "Address" : address,
+      "Avatar" : avtUrl,
+      "Email" : email
+    };
+   
+    final result = await request(path: '/api/accounts/update',method: Method.post,body: body);
+    final user = User.fromJson(result);
+    return user;
+  }
+
+  Future<bool>updatePassword({required String oldPassword, required String newPassword}) async {
+    final body = {
+      "OldPassword" : oldPassword,
+      "NewPassword" : oldPassword
+    };
+
+    final result = await request(path: '/api/accounts/changePassword',method: Method.post,body: body);
+    //final pModel = PasswordModel.fromJson(result);
+    return result;
+
+  }
 
 }

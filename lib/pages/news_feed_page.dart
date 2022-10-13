@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutterhw13/common/const.dart';
 import 'package:flutterhw13/common/my_dialog.dart';
 import 'package:flutterhw13/common/photo_grid.dart';
+import 'package:flutterhw13/model_2/IssuesData.dart';
+import 'package:flutterhw13/pages/account_page.dart';
 import 'package:flutterhw13/pages/change_password_page.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/report_page.dart';
 
+import '../bloc/issue_bloc.dart';
 import '../model/drawer_model.dart' as dm;
 import '../model/status_model.dart' as sm;
+import '../services/shared_preferences_manager.dart';
 
 class NewsFeedPage extends StatefulWidget {
-  const NewsFeedPage({Key? key}) : super(key: key);
+  final String? name;
+  final String? phone;
+  final String? dob;
+  final String? address;
+  final String? email;
+  final String? avtUrl;
 
+  const NewsFeedPage({super.key, this.name ='',this.phone = '', this.avtUrl = '',this.dob='',this.email='',this.address=''});
   @override
   State<NewsFeedPage> createState() => _NewsFeedPageState();
 }
@@ -18,9 +29,15 @@ class NewsFeedPage extends StatefulWidget {
 class _NewsFeedPageState extends State<NewsFeedPage> {
   List<sm.StatusModel> sttM = [];
   List<dm.DrawerModel> drM = [];
+  late IssueBloc issueBloc;
+  String? url;
+
   @override
   void initState() {
     // TODO: implement initState
+    url = widget.avtUrl;
+    print(url);
+    issueBloc = IssueBloc();
     sttM.addAll(sm.listSM);
     drM.addAll(dm.listDM);
     super.initState();
@@ -40,7 +57,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           color: Colors.white,
           child: Column(
             children: [
-              _profileItem('Truong Huu Thang', '0859685545', 'assets/logo.png'),
+              _profileItem(widget.name ??'', widget.phone??'', url ?? 'https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg',),
               ListView.separated(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -56,41 +73,89 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           ),
         ),
       ),
-      body: ListView.separated(
-        shrinkWrap: true,
-        itemBuilder: (_, index) {
-          return _postWidget(sttM[index]);
-        },
-        separatorBuilder: (BuildContext context, int index) {
-          return const SizedBox(
-            height: 8,
-          );
-        },
-        itemCount: sttM.length,
-      ),
+      body: _postWidget(),
+
+      // ListView.separated(
+      //   shrinkWrap: true,
+      //   itemBuilder: (_, index) {
+      //     return _postWidget(sttM[index]);
+      //   },
+      //   separatorBuilder: (BuildContext context, int index) {
+      //     return const SizedBox(
+      //       height: 8,
+      //     );
+      //   },
+      //   itemCount: sttM.length,
+      // ),
     );
   }
 
-  Widget _postWidget(sm.StatusModel statusModel) {
-    var textStt = '';
-    if (statusModel.status == true) {
-      textStt = 'Đã xong';
-    } else {
-      textStt = 'Không duyệt';
+  Widget _postWidget() {
+
+    return StreamBuilder<List<IssuesData>>(
+      stream: issueBloc.streamIssue,
+      builder: (_, snapshot) {
+        if(snapshot.hasError){
+          return Center(child: Text(snapshot.error.toString()),);
+        }
+        if(snapshot.hasData){
+          final issues = snapshot.data ?? [];
+          return RefreshIndicator(
+            onRefresh: () async{
+              await issueBloc.getIssues(isClear: true);
+            },
+            child: ListView.separated(
+                itemBuilder: (_,index){
+                  if(index == issues.length-1){
+                    issueBloc.getIssues(isClear: false);
+                  }
+                  return _item(issues[index]);
+                },
+                separatorBuilder: (_,index){
+                  return const Divider();
+                },
+                itemCount: issues.length),
+          );
+        }
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  Widget _item(IssuesData issue){
+    // var textStt = '';
+    // if (statusModel.status == true) {
+    //   textStt = 'Đã xong';
+    // } else {
+    //   textStt = 'Không duyệt';
+    // }
+    String issueUrl = '${issue.accountPublic!.avatar}';
+    if(!issueUrl.startsWith('http')){
+      issueUrl = baseUrl+issueUrl;
     }
     return Container(
+
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+              color: Colors.black54,
+              blurRadius: 15.0,
+              offset: Offset(0.0, 0.75)
+          )
+        ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                backgroundImage: AssetImage('assets/logo.png'),
+               CircleAvatar(
+                  backgroundImage: issueUrl == '' || issueUrl=='http://api.quynhtao.com' ? const NetworkImage('https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg') : NetworkImage(issueUrl)
               ),
               const SizedBox(
                 width: 8,
@@ -99,39 +164,41 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    statusModel.username!,
+                    issue.createdBy!,
                     style: const TextStyle(color: Colors.black),
                   ),
                   Text(
-                    statusModel.dateCreate!,
+                    issue.createdAt!,
                     style: const TextStyle(color: Colors.black26),
                   ),
                 ],
               ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    textStt,
-                    style: TextStyle(
-                        color: statusModel.status == true
-                            ? Colors.green
-                            : Colors.red),
-                  ),
-                ),
-              ),
+              // Expanded(
+              //   child: Align(
+              //     alignment: Alignment.centerRight,
+              //     child: Text(
+              //       textStt,
+              //       style: TextStyle(
+              //           color: statusModel.status == true
+              //               ? Colors.green
+              //               : Colors.red),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
+          const SizedBox(height: 8,),
           Container(
             color: Colors.grey,
             height: 1,
           ),
+          const SizedBox(height: 8,),
           Column(
             children: [
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  statusModel.title!,
+                  issue.title!,
                   style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -144,7 +211,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  statusModel.content!,
+                  issue.content!,
                   style: const TextStyle(color: Colors.black),
                 ),
               ),
@@ -153,10 +220,10 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               ),
               // Image.asset(statusModel.imgUrl!),
               PhotoGrid(
-                  imageUrls: statusModel.imgUrls!,
-                  onImageClicked: (i){},
-                  onExpandClicked: (){},
-                  )
+                imageUrls: issue.photos!,
+                onImageClicked: (i){},
+                onExpandClicked: (){},
+              )
             ],
           )
         ],
@@ -171,11 +238,12 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => const ReportPage()));
         }else if (drawerModel.id == 2) {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const ChangePasswordPage()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) =>  ChangePasswordPage(name: widget.name,phone: widget.phone,avtUrl: widget.avtUrl,dob: widget.dob,address: widget.address,email: widget.email,)));
         }
         else if (drawerModel.id == 5) {
           MyDialog(context).showDialog(const LoginPage());
+          sharedPrefs.remove('apiKey');
 //          Navigator.pushReplacement(
 //              context, MaterialPageRoute(builder: (_) => const LoginPage()));
         } else {}
@@ -202,45 +270,48 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   }
 
   Widget _profileItem(String name, String phone, String imgUrl) {
-    return Container(
-      color: Colors.blue,
-      child: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          height: 60,
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundImage: AssetImage(
-                  imgUrl,
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (_)=>  AccountPage(name: widget.name,phone: widget.phone,avtUrl: url,dob: widget.dob,address: widget.address,email: widget.email,)));
+      },
+      child: Container(
+        color: Colors.blue,
+        child: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8,),
+            height: 70,
+            child: Row(
+              children: [
+                CircleAvatar(
+                    backgroundImage: NetworkImage(imgUrl),
                 ),
-              ),
-              const SizedBox(
-                width: 8,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
+                const SizedBox(
+                  width: 8,
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  Text(
-                    phone,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
+                    Text(
+                      phone,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
 
-                  //Text(phone),
-                ],
-              ),
-            ],
+                    //Text(phone),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

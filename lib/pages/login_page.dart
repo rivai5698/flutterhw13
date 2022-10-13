@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/my_button.dart';
 import 'package:flutterhw13/common/my_text_field.dart';
@@ -8,8 +6,10 @@ import 'package:flutterhw13/common/toast_overlay.dart';
 import 'package:flutterhw13/pages/news_feed_page.dart';
 import 'package:flutterhw13/pages/register_page.dart';
 import 'package:flutterhw13/services/api_service.dart';
+import 'package:flutterhw13/services/shared_preferences_manager.dart';
 import 'package:flutterhw13/services/user_service.dart';
-import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   final String phoneStr, passwordStr;
@@ -24,6 +24,19 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController _phoneController;
   late TextEditingController _passwordController;
   late bool isEnable;
+  late String name;
+  late String phone;
+  String? avtUrl;
+  SharedPreferences? prefs;
+  bool isPhoneChecked= true;
+  bool isPasswordChecked= true;
+  @override
+
+  void setState(VoidCallback fn) {
+    // TODO: implement setState
+    super.setState(fn);
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -32,7 +45,21 @@ class _LoginPageState extends State<LoginPage> {
     isEnable = false;
     _phoneController.text = widget.phoneStr;
     _passwordController.text = widget.passwordStr;
+    initData();
     super.initState();
+  }
+
+  initData() async {
+    final String? phone;
+    phone = await sharedPrefs.getString('phone');
+    if(_phoneController.text==''){
+      _phoneController.text= phone ?? '';
+    }
+    final String? pw;
+    pw = await sharedPrefs.getString('password');
+    if(_passwordController.text==''){
+      _passwordController.text= pw ?? '';
+    }
   }
 
   @override
@@ -70,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: SizedBox(
                             width: widthM / 2,
                             height: widthM / 2,
-                            child: Image.asset('assets/logo.png'),
+                            child: LottieBuilder.asset('assets/logo.json'),
                           ),
                         ),
                       ),
@@ -78,9 +105,24 @@ class _LoginPageState extends State<LoginPage> {
                         height: 16,
                       ),
                       MyTextField(
+                        autofocus: true,
                         text: 'Số điện thoại',
                         maxLength: 10,
                         textInputType: TextInputType.phone,
+                        onChanged: (String phone) {
+                          if (!isPhone(phone) && phone != '') {
+                            setState(() {
+                              isPhoneChecked = false;
+                            });
+                          } else {
+                            setState(() {
+                              isPhoneChecked = true;
+                            });
+                          }
+                        },
+                        inputCheck: isPhoneChecked
+                          ? ''
+                          : 'Số điện thoại chưa đúng định dạng',
                         textEditingController: _phoneController,
                       ),
                       const SizedBox(
@@ -88,8 +130,25 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       MyTextField(
                         text: 'Mật khẩu',
-                        maxLength: 24,
                         obscureText: true,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (String str){
+                          login();
+                        },
+                        inputCheck: isPasswordChecked
+                            ? ''
+                            : 'Mật khẩu từ 8 ký tự trở lên',
+                        onChanged: (String str) {
+                          if (str.length < 8 && str != '') {
+                            setState(() {
+                              isPasswordChecked = false;
+                            });
+                          } else {
+                            setState(() {
+                              isPasswordChecked = true;
+                            });
+                          }
+                        },
                         textEditingController: _passwordController,
                       ),
                       const SizedBox(
@@ -103,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                             text: 'Đăng ký',
                             color: Colors.grey.shade100,
                             width: widthM / 2.5,
-                            textColor: Colors.black,
+                            textColor: Colors.white,
                           ),
                           MyButton(
                             onPressed: () {
@@ -133,7 +192,7 @@ class _LoginPageState extends State<LoginPage> {
                   TextSpan(
                     text: '1800.1186',
                     style: TextStyle(
-                      color: Colors.green,
+                      color: Colors.blue,
                       fontSize: 16,
                     ),
                   ),
@@ -152,24 +211,53 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void login() {
+    final ToastLoadingOverlay toastOverlay = ToastLoadingOverlay(context);
     if(_phoneController.text==''||_passwordController.text==''){
       ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng điền số điện thoại và mật khẩu');
     }else{
-      ToastLoadingOverlay(context).show();
-      apiService
-          .login(phone: _phoneController.text, password: _passwordController.text)
-          .then((value) {
-        ToastOverlay(context).show(type: ToastType.success, msg: 'Thành công');
-        Future.delayed(const Duration(seconds: 2), () {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const NewsFeedPage()));
-        });
-      }).catchError((e) {
-        ToastOverlay(context).show(type: ToastType.error, msg: 'That bai');
-      });
-    }
+      if(isPhoneChecked==true&&isPasswordChecked==true){
+        toastOverlay.show();
 
+        Future.delayed(const Duration(seconds: 2),() async {
+          await apiService
+              .login(phone: _phoneController.text, password: _passwordController.text)
+              .then((value) {
+            ToastOverlay(context).show(type: ToastType.success, msg: 'Thành công');
+            apiService.token = value.token!;
+            setState(() {
+              name = value.name!;
+              phone = value.phoneNumber!;
+              avtUrl = value.avatar;
+            });
+
+            //Future.delayed(const Duration(seconds: 5), () {
+            sharedPrefs.setString('phone', _phoneController.text);
+            sharedPrefs.setString('password', _passwordController.text);
+            sharedPrefs.setString('apiKey', apiService.token);
+            toastOverlay.hide();
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) =>  NewsFeedPage(name: name,phone: phone,avtUrl: avtUrl??'https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg',email: value.email,address: value.address??'',dob: value.dateOfBirth??'',)));
+            //});
+          }).catchError((e) {
+            toastOverlay.hide();
+            ToastOverlay(context).show(type: ToastType.error, msg: e.toString().replaceAll('Exception: ', ''));
+          });
+        });
+      }else{
+        ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng kiểm tra lại các thông tin');
+
+      }
+
+
+    }
   }
+
+  bool isPhone(String phoneNumber) {
+    final regExp = RegExp('(0)(3|5|7|8|9)+([0-9]{8})');
+    return regExp.hasMatch(phoneNumber);
+  }
+
+
 
   // Future<void> login() async {
   //   final uri = Uri.parse("http://api.quynhtao.com/api/accounts/login");
