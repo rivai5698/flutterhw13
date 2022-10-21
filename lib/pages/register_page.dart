@@ -6,6 +6,7 @@ import 'package:flutterhw13/common/toast_overlay.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/services/api_service.dart';
 import 'package:flutterhw13/services/user_service.dart';
+import 'package:lottie/lottie.dart';
 
 import '../common/toast_loading_overlay.dart';
 
@@ -28,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isPhoneChecked = true;
   bool isPasswordChecked = true;
   bool isRePasswordChecked = true;
+  bool isClicked = false;
 
   @override
   void setState(VoidCallback fn) {
@@ -89,7 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: SizedBox(
                             width: widthM / 2,
                             height: widthM / 2,
-                            child: Image.asset('assets/logo.png'),
+                            child: Lottie.asset('assets/logo.json'),
                           ),
                         ),
                       ),
@@ -100,6 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         autofocus: true,
                         text: 'Tên',
                         inputCheck: '',
+                        readonly: isClicked,
                         textInputAction: TextInputAction.next,
                         textEditingController: _nameController,
                         textInputType: TextInputType.text,
@@ -111,6 +114,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       MyTextField(
                         text: 'Email',
                         textInputAction: TextInputAction.next,
+                        readonly: isClicked,
                         onChanged: (String str) {
                           if (!isEmail(str) && str != '') {
                             setState(() {
@@ -134,6 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       MyTextField(
                         text: 'Số điện thoại',
+                        readonly: isClicked,
                         textInputAction: TextInputAction.next,
                         maxLength: 10,
                         onChanged: (String phone) {
@@ -160,6 +165,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       MyTextField(
                         text: 'Mật khẩu',
                         textInputAction: TextInputAction.done,
+                        readonly: isClicked,
                         maxLength: 24,
                         obscureText: true,
                         // onSubmitted: (String str){
@@ -186,6 +192,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       MyTextField(
                         text: 'Nhập lại mật khẩu',
+                        readonly: isClicked,
                         maxLength: 24,
                         obscureText: true,
                         textInputAction: TextInputAction.done,
@@ -271,12 +278,18 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void register() {
     print('_RegisterPageState.register');
+    setState(() {
+      isClicked = true;
+    });
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
     if (_emailController.text == '' ||
         _nameController.text == '' ||
         _passwordController.text == '' ||
         _rewritePasswordController.text == ''||
         _phoneController.text == '') {
+      setState(() {
+        isClicked = false;
+      });
       ToastOverlay(context).show(
         msg: 'Vui lòng điền đầy đủ thông tin',
         type: ToastType.warning,
@@ -287,6 +300,9 @@ class _RegisterPageState extends State<RegisterPage> {
           msg: 'Mật khẩu không trùng khớp',
           type: ToastType.warning,
         );
+        setState(() {
+          isClicked=false;
+        });
       } else {
         if (isValidate()) {
           toastLoadingOverlay.show();
@@ -310,7 +326,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               passwordStr: _passwordController.text,
                             )));
               });
+              setState(() {
+                isClicked = false;
+              });
             }).catchError((e) {
+              setState(() {
+                isClicked = false;
+              });
               toastLoadingOverlay.hide();
               ToastOverlay(context).show(
                   type: ToastType.error,
@@ -318,6 +340,9 @@ class _RegisterPageState extends State<RegisterPage> {
             });
           });
         }else{
+          setState(() {
+            isClicked = false;
+          });
           ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng kiểm tra lại các thông tin');
         }
       }

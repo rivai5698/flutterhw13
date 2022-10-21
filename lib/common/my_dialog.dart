@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 
+import '../services/shared_preferences_manager.dart';
+
 class MyDialog{
   final BuildContext context;
 
@@ -8,7 +10,7 @@ class MyDialog{
 
   void showDialog(Widget materialPage){
     showGeneralDialog(
-        barrierDismissible: true,
+        barrierDismissible: false,
         barrierColor: Colors.grey.withOpacity(0.2),
         barrierLabel:
         MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -82,7 +84,8 @@ class MyDialog{
                 Expanded(
                   child: GestureDetector(
                     onTap: (){
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> materialPage));
+                      sharedPrefs.remove('apiKey');
+                      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=> materialPage), (route) => false);
                     },
                     child: Container(
                       height: 40,

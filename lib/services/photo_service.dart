@@ -1,7 +1,7 @@
 import 'package:flutterhw13/services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../model/Photo.dart';
+import '../model/photo.dart';
 
 extension PhotoService on ApiService{
   Future<Photo> uploadImg({required XFile file}) async {

@@ -1,7 +1,7 @@
 
-import 'package:flutterhw13/model/PasswordModel.dart';
+import 'package:flutterhw13/model/password_model.dart';
 import 'package:flutterhw13/services/api_service.dart';
-import '../model/User.dart';
+import '../model/user.dart';
 
 extension UserService on ApiService{
 

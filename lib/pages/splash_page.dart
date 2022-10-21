@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/toast_overlay.dart';
-import 'package:flutterhw13/model/User.dart';
+import 'package:flutterhw13/model/user.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/news_feed_page.dart';
 import 'package:flutterhw13/services/api_service.dart';

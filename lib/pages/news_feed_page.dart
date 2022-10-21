@@ -1,13 +1,16 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/const.dart';
+import 'package:flutterhw13/common/group_image_dialog.dart';
+import 'package:flutterhw13/common/image_dialog.dart';
 import 'package:flutterhw13/common/my_dialog.dart';
 import 'package:flutterhw13/common/photo_grid.dart';
-import 'package:flutterhw13/model_2/IssuesData.dart';
+import 'package:flutterhw13/model/Issues_data.dart';
 import 'package:flutterhw13/pages/account_page.dart';
 import 'package:flutterhw13/pages/change_password_page.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/report_page.dart';
-
+import '../bloc/image_bloc.dart';
 import '../bloc/issue_bloc.dart';
 import '../model/drawer_model.dart' as dm;
 import '../model/status_model.dart' as sm;
@@ -21,7 +24,14 @@ class NewsFeedPage extends StatefulWidget {
   final String? email;
   final String? avtUrl;
 
-  const NewsFeedPage({super.key, this.name ='',this.phone = '', this.avtUrl = '',this.dob='',this.email='',this.address=''});
+  const NewsFeedPage(
+      {super.key,
+      this.name = '',
+      this.phone = '',
+      this.avtUrl = '',
+      this.dob = '',
+      this.email = '',
+      this.address = ''});
   @override
   State<NewsFeedPage> createState() => _NewsFeedPageState();
 }
@@ -30,14 +40,15 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   List<sm.StatusModel> sttM = [];
   List<dm.DrawerModel> drM = [];
   late IssueBloc issueBloc;
+  late ImageBloc imageBloc;
   String? url;
 
   @override
   void initState() {
     // TODO: implement initState
     url = widget.avtUrl;
-    print(url);
     issueBloc = IssueBloc();
+    imageBloc = ImageBloc();
     sttM.addAll(sm.listSM);
     drM.addAll(dm.listDM);
     super.initState();
@@ -57,17 +68,23 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           color: Colors.white,
           child: Column(
             children: [
-              _profileItem(widget.name ??'', widget.phone??'', url ?? 'https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg',),
-              ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemBuilder: (_, index) {
-                  return _drawerItem(drM[index]);
-                },
-                itemCount: drM.length,
-                separatorBuilder: (_, index) {
-                  return const Divider();
-                },
+              _profileItem(
+                widget.name ?? '',
+                widget.phone ?? '',
+                url ?? missingImgUrl,
+              ),
+              Expanded(
+                child: ListView.separated(
+                  //physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (_, index) {
+                    return _drawerItem(drM[index]);
+                  },
+                  itemCount: drM.length,
+                  separatorBuilder: (_, index) {
+                    return const Divider();
+                  },
+                ),
               )
             ],
           ),
@@ -91,30 +108,32 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   }
 
   Widget _postWidget() {
-
     return StreamBuilder<List<IssuesData>>(
       stream: issueBloc.streamIssue,
       builder: (_, snapshot) {
-        if(snapshot.hasError){
-          return Center(child: Text(snapshot.error.toString()),);
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(snapshot.error.toString()),
+          );
         }
-        if(snapshot.hasData){
+        if (snapshot.hasData) {
           final issues = snapshot.data ?? [];
           return RefreshIndicator(
-            onRefresh: () async{
+            onRefresh: () async {
               await issueBloc.getIssues(isClear: true);
             },
             child: ListView.separated(
-                itemBuilder: (_,index){
-                  if(index == issues.length-1){
-                    issueBloc.getIssues(isClear: false);
-                  }
-                  return _item(issues[index]);
-                },
-                separatorBuilder: (_,index){
-                  return const Divider();
-                },
-                itemCount: issues.length),
+              itemBuilder: (_, index) {
+                if (index == issues.length - 1) {
+                  issueBloc.getIssues(isClear: false);
+                }
+                return _item(issues[index]);
+              },
+              separatorBuilder: (_, index) {
+                return const Divider();
+              },
+              itemCount: issues.length,
+            ),
           );
         }
         return const Center(
@@ -124,7 +143,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
     );
   }
 
-  Widget _item(IssuesData issue){
+  Widget _item(IssuesData issue) {
     // var textStt = '';
     // if (statusModel.status == true) {
     //   textStt = 'Đã xong';
@@ -132,11 +151,10 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
     //   textStt = 'Không duyệt';
     // }
     String issueUrl = '${issue.accountPublic!.avatar}';
-    if(!issueUrl.startsWith('http')){
-      issueUrl = baseUrl+issueUrl;
+    if (!issueUrl.startsWith('http') && issueUrl != '') {
+      issueUrl = baseUrl + issueUrl;
     }
     return Container(
-
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -145,8 +163,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           BoxShadow(
               color: Colors.black54,
               blurRadius: 15.0,
-              offset: Offset(0.0, 0.75)
-          )
+              offset: Offset(0.0, 0.75))
         ],
       ),
       padding: const EdgeInsets.all(16),
@@ -154,9 +171,10 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         children: [
           Row(
             children: [
-               CircleAvatar(
-                  backgroundImage: issueUrl == '' || issueUrl=='http://api.quynhtao.com' ? const NetworkImage('https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg') : NetworkImage(issueUrl)
-              ),
+              CircleAvatar(
+                  backgroundImage: issueUrl == '' || issueUrl == baseUrl
+                      ? const NetworkImage(missingImgUrl)
+                      : NetworkImage(issueUrl)),
               const SizedBox(
                 width: 8,
               ),
@@ -187,12 +205,16 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               // ),
             ],
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Container(
             color: Colors.grey,
             height: 1,
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Column(
             children: [
               Align(
@@ -219,11 +241,26 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                 height: 4,
               ),
               // Image.asset(statusModel.imgUrl!),
-              PhotoGrid(
-                imageUrls: issue.photos!,
-                onImageClicked: (i){},
-                onExpandClicked: (){},
-              )
+              if (issue.photos!.isNotEmpty) ...[
+                PhotoGrid(
+                  imageUrls: issue.photos!,
+                  onImageClicked: (i) {
+                    ImageDialog(context).showImageDialog(issue.photos![i]);
+                  },
+                  onExpandClicked: (i) {
+                    if (imageBloc.isClosed()) {
+                      imageBloc = ImageBloc();
+                    }
+                    imageBloc.getIndex(i);
+                    GroupImageDialog(context, imageBloc)
+                        .showGroupImageDialog(issue.photos!, i);
+                  },
+                ),
+              ] else ...[
+                const SizedBox(
+                  height: 0,
+                ),
+              ],
             ],
           )
         ],
@@ -237,13 +274,21 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         if (drawerModel.id == 1) {
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => const ReportPage()));
-        }else if (drawerModel.id == 2) {
+        } else if (drawerModel.id == 2) {
           Navigator.push(
-              context, MaterialPageRoute(builder: (_) =>  ChangePasswordPage(name: widget.name,phone: widget.phone,avtUrl: widget.avtUrl,dob: widget.dob,address: widget.address,email: widget.email,)));
-        }
-        else if (drawerModel.id == 5) {
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ChangePasswordPage(
+                        name: widget.name,
+                        phone: widget.phone,
+                        avtUrl: widget.avtUrl,
+                        dob: widget.dob,
+                        address: widget.address,
+                        email: widget.email,
+                      )));
+        } else if (drawerModel.id == 5) {
           MyDialog(context).showDialog(const LoginPage());
-          sharedPrefs.remove('apiKey');
+
 //          Navigator.pushReplacement(
 //              context, MaterialPageRoute(builder: (_) => const LoginPage()));
         } else {}
@@ -271,19 +316,44 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
 
   Widget _profileItem(String name, String phone, String imgUrl) {
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (_)=>  AccountPage(name: widget.name,phone: widget.phone,avtUrl: url,dob: widget.dob,address: widget.address,email: widget.email,)));
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => AccountPage(
+                      name: widget.name,
+                      phone: widget.phone,
+                      avtUrl: url,
+                      dob: widget.dob,
+                      address: widget.address,
+                      email: widget.email,
+                    )));
       },
       child: Container(
         color: Colors.blue,
         child: SafeArea(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8,),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+            ),
             height: 70,
             child: Row(
               children: [
                 CircleAvatar(
-                    backgroundImage: NetworkImage(imgUrl),
+                  //radius: 60,
+                  // child: ClipRRect(
+                  //   borderRadius: BorderRadius.circular(60),
+                  //   child: CachedNetworkImage(
+                  //     imageUrl: "http://via.placeholder.com/350x150",
+                  //     placeholder: (context, url) =>
+                  //         CircularProgressIndicator(),
+                  //     errorWidget: (context, url, error) => Icon(Icons.error),
+                  //   ),
+                  // ),
+
+                  backgroundImage: NetworkImage(
+                      imgUrl
+                  ),
                 ),
                 const SizedBox(
                   width: 8,

@@ -1,4 +1,4 @@
-import 'AccountPublic.dart';
+import 'account_public.dart';
 
 class IssuesData {
   IssuesData({

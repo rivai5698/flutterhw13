@@ -22,9 +22,12 @@ class _ReportPageState extends State<ReportPage> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
   final ImagePicker _picker = ImagePicker();
-  List<String> listPic=[];
-  String listPhotos='';
+  List<String> listPic = [];
+  String listPhotos = '';
   String? imgUrl;
+  bool isClicked = false;
+  bool isTitleChecked = true;
+  bool isContentChecked = true;
   @override
   void initState() {
     // TODO: implement initState
@@ -32,6 +35,13 @@ class _ReportPageState extends State<ReportPage> {
     _titleController = TextEditingController();
     super.initState();
   }
+
+  @override
+  void setState(VoidCallback fn) {
+    // TODO: implement setState
+    super.setState(fn);
+  }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -59,48 +69,75 @@ class _ReportPageState extends State<ReportPage> {
                 text: 'Tiêu đề',
                 textEditingController: _titleController,
                 autofocus: true,
-                inputCheck: '',
+                readonly: isClicked,
+                maxLength: 50,
+                onChanged: (String str){
+                  if(str.length==50&&str!=''){
+                    setState(() {
+                      isTitleChecked = false;
+                    });
+                  }else{
+                    setState(() {
+                      isTitleChecked = true;
+                    });
+                  }
+                },
+                inputCheck: isTitleChecked ? '' : 'Số ký tự cho phép: 50',
               ),
               const SizedBox(
                 height: 16,
               ),
               MyTextField(
                 text: 'Nội dung',
+                onChanged: (String str){
+                  if(str.length==1000&&str!=''){
+                    setState(() {
+                      isContentChecked = false;
+                    });
+                  }else{
+                    setState(() {
+                      isContentChecked = true;
+                    });
+                  }
+                },
                 minLines: 3,
                 maxLines: 5,
+                maxLength: 1000,
+                readonly: isClicked,
                 textEditingController: _contentController,
-                inputCheck: '',
+                inputCheck: isContentChecked ? '':'Số ký tự cho phép: 1000',
               ),
               const SizedBox(
                 height: 16,
               ),
-              GridView.builder(
-                shrinkWrap: true,
-                itemCount: listPic.length+1,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 0.5,
-                  mainAxisSpacing: 0.5,
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  if(listPic.isNotEmpty){
-                    if (index == listPic.length) {
-                      return _addImageWidget();
+              Expanded(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  itemCount: listPic.length + 1,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 0.5,
+                    mainAxisSpacing: 0.5,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    if (listPic.isNotEmpty) {
+                      if (index == listPic.length) {
+                        return _addImageWidget();
+                      } else {
+                        return _imageWidget(listPic[index]);
+                      }
                     } else {
-                      return _imageWidget(listPic[index]);
+                      return _addImageWidget();
                     }
-                  }else{
-                    return _addImageWidget();
-                  }
-
-                },
+                  },
+                ),
               ),
               const SizedBox(
                 width: 32,
               ),
               MyButton(
                 text: 'Lưu',
-                isEnable: true,
+                isEnable: isClicked,
                 onPressed: () {
                   postIssue();
                 },
@@ -112,54 +149,71 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-
   void postIssue() {
+    setState(() {
+      isClicked=true;
+    });
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
-    if(_titleController.text!=''&&_contentController.text!=''){
+    if (_titleController.text != '' && _contentController.text != '') {
       toastLoadingOverlay.show();
-      Future.delayed(const Duration(seconds: 2),(){
-        apiService.postIssue(title: _titleController.text,content: _contentController.text,photo: listPhotos).then((value){
+      Future.delayed(const Duration(seconds: 2), () {
+        apiService
+            .postIssue(
+                title: _titleController.text,
+                content: _contentController.text,
+                photo: listPhotos)
+            .then((value) {
           toastLoadingOverlay.hide();
-          ToastOverlay(context).show(msg:'Thành công',type:ToastType.success);
+          ToastOverlay(context)
+              .show(msg: 'Thành công', type: ToastType.success);
           setState(() {
-            _contentController.text='';
-            _titleController.text='';
-            listPic=[];
-            listPhotos='';
+            _contentController.text = '';
+            _titleController.text = '';
+            listPic = [];
+            listPhotos = '';
+            isClicked=false;
           });
-        }).catchError((e){
+        }).catchError((e) {
           toastLoadingOverlay.hide();
-          ToastOverlay(context).show(type: ToastType.error, msg: e.toString().replaceAll('Exception: ', ''));
+          ToastOverlay(context).show(
+              type: ToastType.error,
+              msg: e.toString().replaceAll('Exception: ', ''));
+          setState(() {
+            isClicked = false;
+          });
         });
       });
-    }else{
-      ToastOverlay(context).show(msg: 'Vui lòng điền đầy đủ thông tin',type: ToastType.warning);
+    } else {
+      ToastOverlay(context)
+          .show(msg: 'Vui lòng điền đầy đủ thông tin', type: ToastType.warning);
+      setState(() {
+        isClicked=false;
+      });
     }
   }
 
-  Future selImage({required ImageSource source}) async{
-    try{
+  Future selImage({required ImageSource source}) async {
+    try {
       final img = await _picker.pickImage(source: source);
 
-      if(img!=null){
+      if (img != null) {
         uploadImg(img);
       }
-    }catch(e){
+    } catch (e) {
       // getLostData();
       ToastOverlay(context).show(msg: 'Error: $e');
       //print('$e');
     }
-
-
   }
 
-  void uploadImg(XFile file){
+  void uploadImg(XFile file) {
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
-    if(file!=null){
+    if (file != null) {
       toastLoadingOverlay.show();
-      Future.delayed(const Duration(seconds: 2),() async {
-        await apiService.uploadImg(file: file).then((value){
-          ToastOverlay(context).show(msg: 'Upload ảnh thành công',type: ToastType.success);
+      Future.delayed(const Duration(seconds: 2), () async {
+        await apiService.uploadImg(file: file).then((value) {
+          ToastOverlay(context)
+              .show(msg: 'Upload ảnh thành công', type: ToastType.success);
 
           print(value.path);
           setState(() {
@@ -167,20 +221,20 @@ class _ReportPageState extends State<ReportPage> {
             listPic.add('$baseUrl${value.path}');
 
             listPhotos = '';
-            for(String str in listPic){
+            for (String str in listPic) {
               listPhotos = '$listPhotos$str|';
             }
-            listPhotos = listPhotos.substring(0,listPhotos.length-1);
+            listPhotos = listPhotos.substring(0, listPhotos.length - 1);
             print(listPhotos);
             print(listPic);
           });
           toastLoadingOverlay.hide();
-        }).catchError((e){
+        }).catchError((e) {
           toastLoadingOverlay.hide();
-          ToastOverlay(context).show(msg: e.toString().replaceAll('Exception: ', ''));
+          ToastOverlay(context)
+              .show(msg: e.toString().replaceAll('Exception: ', ''));
         });
       });
-
     }
   }
 
@@ -201,6 +255,7 @@ class _ReportPageState extends State<ReportPage> {
 
   Widget _addImageWidget() {
     return Container(
+      margin: const EdgeInsets.all(20),
       //width: MediaQuery.of(context).size.width/4,
       //height: 10,
       decoration: BoxDecoration(
@@ -216,7 +271,4 @@ class _ReportPageState extends State<ReportPage> {
       ),
     );
   }
-
-
-
 }

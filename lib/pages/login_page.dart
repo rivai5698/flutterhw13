@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   SharedPreferences? prefs;
   bool isPhoneChecked= true;
   bool isPasswordChecked= true;
+  bool isClicked = false;
   @override
 
   void setState(VoidCallback fn) {
@@ -108,6 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                         autofocus: true,
                         text: 'Số điện thoại',
                         maxLength: 10,
+                        readonly: isClicked,
                         textInputType: TextInputType.phone,
                         onChanged: (String phone) {
                           if (!isPhone(phone) && phone != '') {
@@ -132,6 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                         text: 'Mật khẩu',
                         obscureText: true,
                         textInputAction: TextInputAction.done,
+                        readonly: isClicked,
                         onSubmitted: (String str){
                           login();
                         },
@@ -207,12 +210,18 @@ class _LoginPageState extends State<LoginPage> {
 
   void register() {
     Navigator.push(
-        context, MaterialPageRoute(builder: (_) => const RegisterPage()));
+        context, MaterialPageRoute(builder: (_) => const RegisterPage()) );
   }
 
   void login() {
+    setState(() {
+      isClicked = true;
+    });
     final ToastLoadingOverlay toastOverlay = ToastLoadingOverlay(context);
     if(_phoneController.text==''||_passwordController.text==''){
+      setState(() {
+        isClicked = false;
+      });
       ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng điền số điện thoại và mật khẩu');
     }else{
       if(isPhoneChecked==true&&isPasswordChecked==true){
@@ -235,17 +244,25 @@ class _LoginPageState extends State<LoginPage> {
             sharedPrefs.setString('password', _passwordController.text);
             sharedPrefs.setString('apiKey', apiService.token);
             toastOverlay.hide();
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) =>  NewsFeedPage(name: name,phone: phone,avtUrl: avtUrl??'https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg',email: value.email,address: value.address??'',dob: value.dateOfBirth??'',)));
+            Navigator.pushAndRemoveUntil(
+                context, MaterialPageRoute(builder: (_) =>  NewsFeedPage(name: name,phone: phone,avtUrl: avtUrl??'https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg',email: value.email,address: value.address??'',dob: value.dateOfBirth??'',)),(route)=>false);
             //});
+            setState(() {
+              isClicked = false;
+            });
           }).catchError((e) {
+            setState(() {
+              isClicked = false;
+            });
             toastOverlay.hide();
             ToastOverlay(context).show(type: ToastType.error, msg: e.toString().replaceAll('Exception: ', ''));
           });
         });
       }else{
         ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng kiểm tra lại các thông tin');
-
+        setState(() {
+          isClicked = false;
+        });
       }
 
 

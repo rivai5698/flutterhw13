@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutterhw13/services/api_service.dart';
 import 'package:flutterhw13/services/issue_service.dart';
 
-import '../model_2/IssuesData.dart';
+import '../model/Issues_data.dart';
 
 class IssueBloc{
   final _issuesStreamController = StreamController<List<IssuesData>>();

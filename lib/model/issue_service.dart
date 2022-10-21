@@ -1,4 +1,4 @@
-import 'package:flutterhw13/model_2/IssuesData.dart';
+import 'package:flutterhw13/model/Issues_data.dart';
 import 'package:flutterhw13/services/api_service.dart';
 
 extension IssueService on ApiService{

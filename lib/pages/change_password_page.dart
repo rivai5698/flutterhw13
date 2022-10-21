@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/news_feed_page.dart';
 import 'package:flutterhw13/services/user_service.dart';
+import 'package:lottie/lottie.dart';
 
 import '../common/my_button.dart';
 import '../common/my_text_field.dart';
@@ -31,6 +32,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool oldPwChecked = true;
   bool newPwChecked = true;
   bool renewPwChecked = true;
+  bool isClicked = false;
 
   @override
   void initState() {
@@ -71,7 +73,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   child: SizedBox(
                     width: widthM / 2,
                     height: widthM / 2,
-                    child: Image.asset('assets/logo.png'),
+                    child: Lottie.asset('assets/logo.json'),
                   ),
                 ),
               ),
@@ -82,6 +84,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 text: 'Mật khẩu cũ',
                 obscureText: true,
                 autofocus: true,
+                readonly: isClicked,
                 textEditingController: _oldPasswordController,
                 onChanged: (String str){
                   if (str.length < 8 && str != '') {
@@ -104,6 +107,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               MyTextField(
                 text: 'Mật khẩu mới',
                 obscureText: true,
+                readonly: isClicked,
                 textEditingController: _newPasswordController,
                 onChanged: (String str){
                   if (str.length < 8 && str != '') {
@@ -126,6 +130,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               MyTextField(
                 text: 'Nhập lại mật khẩu mới',
                 obscureText: true,
+                readonly: isClicked,
                 textEditingController: _rewritePasswordController,
                 onChanged: (String str){
                   if (str.length < 8 && str != '') {
@@ -167,9 +172,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   void updatePassword(){
+    setState(() {
+      isClicked=true;
+    });
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
     if(_oldPasswordController.text==''||_newPasswordController.text==''||_rewritePasswordController.text==''){
       ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng điền đầy đủ thông tin');
+      setState(() {
+        isClicked=false;
+      });
     }else{
       if(oldPwChecked==true&&newPwChecked==true&&renewPwChecked){
         toastLoadingOverlay.show();
@@ -182,16 +193,23 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             toastLoadingOverlay.hide();
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (_) => NewsFeedPage(name: widget.name,phone: widget.phone,avtUrl: widget.avtUrl,dob: widget.dob,address: widget.address,email: widget.email,)));
-
+            setState(() {
+              isClicked=false;
+            });
           }).catchError((e) {
             print('$e');
             toastLoadingOverlay.hide();
             ToastOverlay(context).show(type: ToastType.error, msg: e.toString().replaceAll('Exception: ', ''));
+            setState(() {
+              isClicked=false;
+            });
           });
         });
       }else{
         ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng kiểm tra lại các thông tin');
-
+        setState(() {
+          isClicked=false;
+        });
       }
 
 
