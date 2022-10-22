@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/my_button.dart';
 import 'package:flutterhw13/common/my_text_field.dart';
-import 'package:flutterhw13/model/issue_service.dart';
-import 'package:flutterhw13/pages/news_feed_page.dart';
+import 'package:flutterhw13/services/issue_service.dart';
 import 'package:flutterhw13/services/photo_service.dart';
 import 'package:image_picker/image_picker.dart';
 
