@@ -72,49 +72,6 @@ class GroupImageDialog {
         });
   }
 
-  Widget _groupImage(List<String> listImg) {
-    return Stack(children: [
-      Positioned(
-        child: Align(
-          alignment: Alignment.center,
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height / 2,
-            child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (_, index) {
-                  String imageUrl = listImg[index];
-                  if (!imageUrl.startsWith('http')) {
-                    imageUrl = baseUrl + imageUrl;
-                  }
-                  //return _itemImg(imageUrl,index);
-                },
-                separatorBuilder: (_, __) {
-                  return const SizedBox(
-                    width: 0,
-                  );
-                },
-                itemCount: listImg.length),
-          ),
-        ),
-      ),
-      Positioned(
-        right: 0,
-        child: SafeArea(
-          child: IconButton(
-            onPressed: () {
-              imageBloc.closeStream();
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.close_rounded,
-              color: Colors.black,
-              size: 24,
-            ),
-          ),
-        ),
-      ),
-    ]);
-  }
 
   Widget _itemImg(List<String> imgUrl, int index) {
     String imageUrl = imgUrl[index];

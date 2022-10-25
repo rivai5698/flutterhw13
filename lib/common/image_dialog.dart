@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 
@@ -31,6 +30,9 @@ class ImageDialog {
     String imageUrl = imgUrl;
     if (!imageUrl.startsWith('http')) {
       imageUrl = baseUrl + imageUrl;
+      if(imageUrl.contains('comuploads')){
+        imageUrl = imageUrl.replaceAll('comuploads', 'com/uploads');
+      }
     }
     return Container(
       color: Colors.white.withOpacity(0.8),

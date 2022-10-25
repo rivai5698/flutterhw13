@@ -31,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   bool isPhoneChecked= true;
   bool isPasswordChecked= true;
   bool isClicked = false;
+  bool pwInvisible = true;
   @override
 
   void setState(VoidCallback fn) {
@@ -132,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       MyTextField(
                         text: 'Mật khẩu',
-                        obscureText: true,
+                        obscureText: pwInvisible,
                         textInputAction: TextInputAction.done,
                         readonly: isClicked,
                         onSubmitted: (String str){
@@ -153,6 +154,13 @@ class _LoginPageState extends State<LoginPage> {
                           }
                         },
                         textEditingController: _passwordController,
+                        icon: GestureDetector(
+                          onTapDown: inContact,
+                          onTapUp: outContact,
+                          child: const Icon(
+                            Icons.remove_red_eye,
+                          ),
+                        ),
                       ),
                       const SizedBox(
                         height: 24,
@@ -310,7 +318,17 @@ class _LoginPageState extends State<LoginPage> {
   //   }
   //   print(response.body);
   // }
+  void inContact(TapDownDetails details) {
+    setState(() {
+      pwInvisible = false;
+    });
+  }
 
+  void outContact(TapUpDetails details) {
+    setState(() {
+      pwInvisible=true;
+    });
+  }
   void validate() {
     if (_phoneController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {}

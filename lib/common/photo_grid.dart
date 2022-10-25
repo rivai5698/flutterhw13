@@ -45,6 +45,9 @@ class _PhotoGridState extends State<PhotoGrid> {
     String imageUrl = widget.imageUrls[0];
     if (!imageUrl.startsWith('http')) {
       imageUrl = baseUrl + imageUrl;
+      if(imageUrl.contains('comuploads')){
+        imageUrl = imageUrl.replaceAll('comuploads', 'com/uploads');
+      }
     }
     return GestureDetector(
       child: Image.network(imageUrl, fit: BoxFit.fill,
@@ -71,8 +74,11 @@ class _PhotoGridState extends State<PhotoGrid> {
     int numImages = widget.imageUrls.length;
       return List<Widget>.generate(min(numImages, widget.maxImages), (index) {
         String imageUrl = widget.imageUrls[index];
-        if (!imageUrl.startsWith('http')) {
+      if (!imageUrl.startsWith('http')) {
           imageUrl = baseUrl + imageUrl;
+          if(imageUrl.contains('comuploads')){
+            imageUrl = imageUrl.replaceAll('comuploads', 'com/uploads');
+          }
         }
         // If its the last image
         if (index == widget.maxImages - 1) {

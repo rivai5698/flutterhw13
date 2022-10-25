@@ -1,4 +1,4 @@
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/const.dart';
 import 'package:flutterhw13/common/group_image_dialog.dart';
@@ -43,9 +43,22 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   late ImageBloc imageBloc;
   String? url;
 
+  bool _showBackToTopButton = false;
+  late ScrollController _scrollController;
+
   @override
   void initState() {
     // TODO: implement initState
+    _scrollController = ScrollController()
+      ..addListener(() {
+        setState(() {
+          if (_scrollController.offset >= 400) {
+            _showBackToTopButton = true;
+          } else {
+            _showBackToTopButton = false;
+          }
+        });
+      });
     url = widget.avtUrl;
     issueBloc = IssueBloc();
     imageBloc = ImageBloc();
@@ -55,11 +68,24 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       //backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Sự cố'),
+      ),
+      floatingActionButton: _showBackToTopButton == false
+          ? null
+          : FloatingActionButton(
+        onPressed: _scrollToTop,
+        child: const Icon(Icons.arrow_upward),
       ),
       drawer: Drawer(
         backgroundColor: Colors.blue,
@@ -123,6 +149,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               await issueBloc.getIssues(isClear: true);
             },
             child: ListView.separated(
+              controller: _scrollController,
               itemBuilder: (_, index) {
                 if (index == issues.length - 1) {
                   issueBloc.getIssues(isClear: false);
@@ -153,7 +180,12 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
     String issueUrl = '${issue.accountPublic!.avatar}';
     if (!issueUrl.startsWith('http') && issueUrl != '') {
       issueUrl = baseUrl + issueUrl;
+      issueUrl = issueUrl.replaceAll(' ', '');
+      if(issueUrl.contains('comuploads')){
+        issueUrl= issueUrl.replaceAll('comuploads', 'com/uploads');
+      }
     }
+
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -171,10 +203,31 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                  backgroundImage: issueUrl == '' || issueUrl == baseUrl
-                      ? const NetworkImage(missingImgUrl)
-                      : NetworkImage(issueUrl)),
+              // CircleAvatar(
+              //   backgroundImage: issueUrl == '' || issueUrl == baseUrl
+              //       ? const NetworkImage(missingImgUrl)
+              //       : NetworkImage(issueUrl),
+              // ),
+              ClipOval(
+                child: Image.network(issueUrl, fit: BoxFit.cover,
+                    width: 32,
+                    height: 32,
+                    errorBuilder: (_, __, ___) {
+                      return const Icon(Icons.error,color: Colors.redAccent,size: 25,);
+                    }, loadingBuilder: (_, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    }),
+              ),
               const SizedBox(
                 width: 8,
               ),
@@ -339,22 +392,37 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             height: 70,
             child: Row(
               children: [
-                CircleAvatar(
-                  //radius: 60,
-                  // child: ClipRRect(
-                  //   borderRadius: BorderRadius.circular(60),
-                  //   child: CachedNetworkImage(
-                  //     imageUrl: "http://via.placeholder.com/350x150",
-                  //     placeholder: (context, url) =>
-                  //         CircularProgressIndicator(),
-                  //     errorWidget: (context, url, error) => Icon(Icons.error),
-                  //   ),
-                  // ),
-
-                  backgroundImage: NetworkImage(
-                      imgUrl
-                  ),
+                // CircleAvatar(
+                //
+                //   backgroundImage: NetworkImage(imgUrl),
+                // ),
+                ClipOval(
+                  child: Image.network(imgUrl, fit: BoxFit.cover,
+                      width: 40,
+                      height: 40,
+                      errorBuilder: (_, __, ___) {
+                        return const Icon(Icons.error,color: Colors.redAccent,size: 25,);
+                      }, loadingBuilder: (_, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
+                        return Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          ),
+                        );
+                      }),
                 ),
+
+
+
                 const SizedBox(
                   width: 8,
                 ),
@@ -386,5 +454,9 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         ),
       ),
     );
+  }
+  void _scrollToTop() {
+    _scrollController.animateTo(0,
+        duration: const Duration(seconds: 2), curve: Curves.linear);
   }
 }

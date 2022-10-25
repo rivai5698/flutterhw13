@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/pages/news_feed_page.dart';
 import 'package:flutterhw13/services/user_service.dart';
 import 'package:lottie/lottie.dart';
@@ -33,6 +32,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool newPwChecked = true;
   bool renewPwChecked = true;
   bool isClicked = false;
+  bool pwInvisible = false;
 
   @override
   void initState() {
@@ -82,7 +82,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               ),
               MyTextField(
                 text: 'Mật khẩu cũ',
-                obscureText: true,
+                obscureText: pwInvisible,
                 autofocus: true,
                 readonly: isClicked,
                 textEditingController: _oldPasswordController,
@@ -100,13 +100,20 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 inputCheck: oldPwChecked
                     ? ''
                     : 'Mật khẩu từ 8 ký tự trở lên',
+                icon: GestureDetector(
+                  onTapDown: inContact,
+                  onTapUp: outContact,
+                  child: const Icon(
+                    Icons.remove_red_eye,
+                  ),
+                ),
               ),
               const SizedBox(
                 height: 16,
               ),
               MyTextField(
                 text: 'Mật khẩu mới',
-                obscureText: true,
+                obscureText: pwInvisible,
                 readonly: isClicked,
                 textEditingController: _newPasswordController,
                 onChanged: (String str){
@@ -123,13 +130,20 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 inputCheck: newPwChecked
                     ? ''
                     : 'Mật khẩu từ 8 ký tự trở lên',
+                icon: GestureDetector(
+                  onTapDown: inContact,
+                  onTapUp: outContact,
+                  child: const Icon(
+                    Icons.remove_red_eye,
+                  ),
+                ),
               ),
               const SizedBox(
                 height: 16,
               ),
               MyTextField(
                 text: 'Nhập lại mật khẩu mới',
-                obscureText: true,
+                obscureText: pwInvisible,
                 readonly: isClicked,
                 textEditingController: _rewritePasswordController,
                 onChanged: (String str){
@@ -146,6 +160,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 inputCheck: renewPwChecked
                     ? ''
                     : 'Mật khẩu từ 8 ký tự trở lên',
+                icon: GestureDetector(
+                  onTapDown: inContact,
+                  onTapUp: outContact,
+                  child: const Icon(
+                    Icons.remove_red_eye,
+                  ),
+                ),
               ),
               const SizedBox(
                 height: 24,
@@ -214,5 +235,17 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
 
     }
+  }
+
+  void inContact(TapDownDetails details) {
+    setState(() {
+      pwInvisible = false;
+    });
+  }
+
+  void outContact(TapUpDetails details) {
+    setState(() {
+      pwInvisible=true;
+    });
   }
 }

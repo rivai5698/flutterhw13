@@ -1,14 +1,16 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/my_button.dart';
 import 'package:flutterhw13/common/my_text_field.dart';
 import 'package:flutterhw13/common/toast_overlay.dart';
-import 'package:flutterhw13/pages/login_page.dart';
 import 'package:flutterhw13/services/api_service.dart';
 import 'package:flutterhw13/services/user_service.dart';
 import 'package:lottie/lottie.dart';
 
+import '../common/const.dart';
 import '../common/toast_loading_overlay.dart';
+import '../services/shared_preferences_manager.dart';
+import 'login_page.dart';
+import 'news_feed_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -30,6 +32,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isPasswordChecked = true;
   bool isRePasswordChecked = true;
   bool isClicked = false;
+  bool pwInvisible = true;
 
   @override
   void setState(VoidCallback fn) {
@@ -167,7 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textInputAction: TextInputAction.done,
                         readonly: isClicked,
                         maxLength: 24,
-                        obscureText: true,
+                        obscureText: pwInvisible,
                         // onSubmitted: (String str){
                         //   register();
                         // },
@@ -186,6 +189,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           }
                         },
                         textEditingController: _passwordController,
+                        icon: GestureDetector(
+                          onTapDown: inContact,
+                          onTapUp: outContact,
+                          child: const Icon(
+                            Icons.remove_red_eye,
+                          ),
+                        ),
                       ),
                       const SizedBox(
                         height: 16,
@@ -194,7 +204,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         text: 'Nhập lại mật khẩu',
                         readonly: isClicked,
                         maxLength: 24,
-                        obscureText: true,
+                        obscureText: pwInvisible,
                         textInputAction: TextInputAction.done,
                         onSubmitted: (String str) {
                           register();
@@ -214,6 +224,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           }
                         },
                         textEditingController: _rewritePasswordController,
+                        icon: GestureDetector(
+                          onTapDown: inContact,
+                          onTapUp: outContact,
+                          child: const Icon(
+                            Icons.remove_red_eye,
+                          ),
+                        ),
                       ),
                       const SizedBox(
                         height: 24,
@@ -285,7 +302,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_emailController.text == '' ||
         _nameController.text == '' ||
         _passwordController.text == '' ||
-        _rewritePasswordController.text == ''||
+        _rewritePasswordController.text == '' ||
         _phoneController.text == '') {
       setState(() {
         isClicked = false;
@@ -301,7 +318,7 @@ class _RegisterPageState extends State<RegisterPage> {
           type: ToastType.warning,
         );
         setState(() {
-          isClicked=false;
+          isClicked = false;
         });
       } else {
         if (isValidate()) {
@@ -316,15 +333,30 @@ class _RegisterPageState extends State<RegisterPage> {
                 .then((value) {
               Future.delayed(const Duration(seconds: 2), () {
                 toastLoadingOverlay.hide();
+                sharedPrefs.setString('phone', _phoneController.text);
+                sharedPrefs.setString('password', _passwordController.text);
+                sharedPrefs.setString('apiKey', apiService.token);
                 ToastOverlay(context)
                     .show(type: ToastType.success, msg: 'Thành công');
-                Navigator.pushReplacement(
+                Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => LoginPage(
-                              phoneStr: _phoneController.text,
-                              passwordStr: _passwordController.text,
-                            )));
+                        builder: (_) => NewsFeedPage(
+                              name: _nameController.text,
+                              phone: _phoneController.text,
+                              avtUrl: value.avatar ?? missingImgUrl,
+                              email: value.email,
+                              //address: value.address ?? '',
+                              dob: value.dateOfBirth ?? '',
+                            )),
+                    (route) => false);
+                // Navigator.pushReplacement(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (_) => LoginPage(
+                //               phoneStr: _phoneController.text,
+                //               passwordStr: _passwordController.text,
+                //             )));
               });
               setState(() {
                 isClicked = false;
@@ -334,27 +366,54 @@ class _RegisterPageState extends State<RegisterPage> {
                 isClicked = false;
               });
               toastLoadingOverlay.hide();
-              ToastOverlay(context).show(
-                  type: ToastType.error,
-                  msg: e.toString().replaceAll('Exception: ', ''));
+              if(e.toString().replaceAll('Exception: ', '')=='Số điện thoại đã được đăng ký'){
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => LoginPage(
+                              phoneStr: _phoneController.text,
+                              passwordStr: _passwordController.text,
+                            )));
+                ToastOverlay(context).show(
+                    type: ToastType.info,
+                    msg:'Số điện thoại đã được đăng ký vui lòng đăng nhập',
+                );
+              }else{
+                ToastOverlay(context).show(
+                    type: ToastType.error,
+                    msg: e.toString().replaceAll('Exception: ', ''));
+              }
             });
           });
-        }else{
+        } else {
           setState(() {
             isClicked = false;
           });
-          ToastOverlay(context).show(type: ToastType.warning,msg: 'Vui lòng kiểm tra lại các thông tin');
+          ToastOverlay(context).show(
+              type: ToastType.warning,
+              msg: 'Vui lòng kiểm tra lại các thông tin');
         }
       }
     }
+  }
+
+  void inContact(TapDownDetails details) {
+    setState(() {
+      pwInvisible = false;
+    });
+  }
+
+  void outContact(TapUpDetails details) {
+    setState(() {
+      pwInvisible=true;
+    });
   }
 
   bool isValidate() {
     if (isEmailChecked == true &&
         isPhoneChecked == true &&
         isPasswordChecked == true &&
-        isRePasswordChecked == true)
-    {
+        isRePasswordChecked == true) {
       return true;
     }
     return false;

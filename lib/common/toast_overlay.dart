@@ -72,7 +72,7 @@ class ToastOverlay {
                           : type == ToastType.error
                               ? Colors.red
                               : type == ToastType.info
-                                  ? Colors.white
+                                  ? Colors.blue
                                   : type == ToastType.warning
                                       ? Colors.orange
                                       : Colors.red,

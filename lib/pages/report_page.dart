@@ -70,12 +70,12 @@ class _ReportPageState extends State<ReportPage> {
                 autofocus: true,
                 readonly: isClicked,
                 maxLength: 50,
-                onChanged: (String str){
-                  if(str.length==50&&str!=''){
+                onChanged: (String str) {
+                  if (str.length == 50 && str != '') {
                     setState(() {
                       isTitleChecked = false;
                     });
-                  }else{
+                  } else {
                     setState(() {
                       isTitleChecked = true;
                     });
@@ -88,12 +88,12 @@ class _ReportPageState extends State<ReportPage> {
               ),
               MyTextField(
                 text: 'Nội dung',
-                onChanged: (String str){
-                  if(str.length==1000&&str!=''){
+                onChanged: (String str) {
+                  if (str.length == 1000 && str != '') {
                     setState(() {
                       isContentChecked = false;
                     });
-                  }else{
+                  } else {
                     setState(() {
                       isContentChecked = true;
                     });
@@ -104,39 +104,34 @@ class _ReportPageState extends State<ReportPage> {
                 maxLength: 1000,
                 readonly: isClicked,
                 textEditingController: _contentController,
-                inputCheck: isContentChecked ? '':'Số ký tự cho phép: 1000',
+                inputCheck: isContentChecked ? '' : 'Số ký tự cho phép: 1000',
               ),
               const SizedBox(
                 height: 16,
               ),
-              Expanded(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: listPic.length + 1,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 0.5,
-                    mainAxisSpacing: 0.5,
-                  ),
-                  itemBuilder: (BuildContext context, int index) {
-                    if (listPic.isNotEmpty) {
-                      if (index == listPic.length) {
-                        return _addImageWidget();
-                      } else {
-                        return _imageWidget(listPic[index]);
-                      }
-                    } else {
-                      return _addImageWidget();
-                    }
-                  },
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: listPic.length + 1,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 0.5,
+                  mainAxisSpacing: 0.5,
                 ),
-              ),
-              const SizedBox(
-                width: 32,
+                itemBuilder: (BuildContext context, int index) {
+                  if (listPic.isNotEmpty) {
+                    if (index == listPic.length) {
+                      return _addImageWidget();
+                    } else {
+                      return _imageWidget(listPic[index]);
+                    }
+                  } else {
+                    return _addImageWidget();
+                  }
+                },
               ),
               MyButton(
                 text: 'Lưu',
-                isEnable: isClicked,
+                isEnable: true,
                 onPressed: () {
                   postIssue();
                 },
@@ -150,7 +145,7 @@ class _ReportPageState extends State<ReportPage> {
 
   void postIssue() {
     setState(() {
-      isClicked=true;
+      isClicked = true;
     });
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
     if (_titleController.text != '' && _contentController.text != '') {
@@ -170,7 +165,7 @@ class _ReportPageState extends State<ReportPage> {
             _titleController.text = '';
             listPic = [];
             listPhotos = '';
-            isClicked=false;
+            isClicked = false;
           });
         }).catchError((e) {
           toastLoadingOverlay.hide();
@@ -186,7 +181,7 @@ class _ReportPageState extends State<ReportPage> {
       ToastOverlay(context)
           .show(msg: 'Vui lòng điền đầy đủ thông tin', type: ToastType.warning);
       setState(() {
-        isClicked=false;
+        isClicked = false;
       });
     }
   }
@@ -194,7 +189,6 @@ class _ReportPageState extends State<ReportPage> {
   Future selImage({required ImageSource source}) async {
     try {
       final img = await _picker.pickImage(source: source);
-
       if (img != null) {
         uploadImg(img);
       }
@@ -207,34 +201,43 @@ class _ReportPageState extends State<ReportPage> {
 
   void uploadImg(XFile file) {
     ToastLoadingOverlay toastLoadingOverlay = ToastLoadingOverlay(context);
-    if (file != null) {
-      toastLoadingOverlay.show();
-      Future.delayed(const Duration(seconds: 2), () async {
-        await apiService.uploadImg(file: file).then((value) {
-          ToastOverlay(context)
-              .show(msg: 'Upload ảnh thành công', type: ToastType.success);
-
-          print(value.path);
-          setState(() {
-            imgUrl = '$baseUrl${value.path}';
-            listPic.add('$baseUrl${value.path}');
-
-            listPhotos = '';
-            for (String str in listPic) {
-              listPhotos = '$listPhotos$str|';
-            }
-            listPhotos = listPhotos.substring(0, listPhotos.length - 1);
-            print(listPhotos);
-            print(listPic);
-          });
-          toastLoadingOverlay.hide();
-        }).catchError((e) {
-          toastLoadingOverlay.hide();
-          ToastOverlay(context)
-              .show(msg: e.toString().replaceAll('Exception: ', ''));
+    toastLoadingOverlay.show();
+    Future.delayed(const Duration(seconds: 2), () async {
+      await apiService.uploadImg(file: file).then((value) {
+        ToastOverlay(context)
+            .show(msg: 'Upload ảnh thành công', type: ToastType.success);
+        print(value.path);
+        setState(() {
+          imgUrl = '$baseUrl${value.path}';
+          listPic.add(imgUrl!.replaceAll(' ', ''));
+          listPhotos = '';
+          for (String str in listPic) {
+            listPhotos = '$listPhotos$str|';
+          }
+          listPhotos = listPhotos.substring(0, listPhotos.length - 1);
+          print(listPhotos);
+          print(listPic);
         });
+        toastLoadingOverlay.hide();
+      }).catchError((e) {
+        toastLoadingOverlay.hide();
+        ToastOverlay(context)
+            .show(msg: e.toString().replaceAll('Exception: ', ''));
       });
-    }
+    });
+  }
+
+  void removeImage(String img) {
+    setState(() {
+      listPic.remove(img);
+      listPhotos = '';
+      for (String str in listPic) {
+        listPhotos = '$listPhotos$str|';
+      }
+      if (listPic.isNotEmpty) {
+        listPhotos = listPhotos.substring(0, listPhotos.length - 1);
+      }
+    });
   }
 
   Widget _imageWidget(String imgUrl) {
@@ -242,19 +245,38 @@ class _ReportPageState extends State<ReportPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
       ),
+      margin: const EdgeInsets.all(8),
       alignment: Alignment.center,
-      child: Image.network(
-        imgUrl,
-        fit: BoxFit.cover,
-        width: MediaQuery.of(context).size.width / 4,
-        height: 80,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.network(
+              imgUrl,
+              fit: BoxFit.fill,
+              width: MediaQuery.of(context).size.width / 4,
+              height: 80,
+            ),
+          ),
+          Positioned(
+              right: 0,
+              top: 0,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.highlight_remove,
+                  color: Colors.blue,
+                ),
+                onPressed: () {
+                  removeImage(imgUrl);
+                },
+              )),
+        ],
       ),
     );
   }
 
   Widget _addImageWidget() {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(8),
       //width: MediaQuery.of(context).size.width/4,
       //height: 10,
       decoration: BoxDecoration(

@@ -110,11 +110,32 @@ class _AccountPageState extends State<AccountPage> {
                           child: Stack(
                             children: [
                                Positioned.fill(
-                                child: CircleAvatar(
-                                  //backgroundImage: AssetImage(widget.avtUrl ?? 'assets/logo.png'),
-                                  backgroundImage: url == null||url=='' ?  const NetworkImage('https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg') : NetworkImage(url!)
-                                  //const AssetImage('assets/logo.png'),
+                                child:
+                                ClipOval(
+                                  child: Image.network(url!, fit: BoxFit.cover,
+                                      width: 32,
+                                      height: 32,
+                                      errorBuilder: (_, __, ___) {
+                                        return const Icon(Icons.error,color: Colors.redAccent,size: 25,);
+                                      }, loadingBuilder: (_, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded /
+                                                loadingProgress.expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      }),
                                 ),
+                                // CircleAvatar(
+                                //   //backgroundImage: AssetImage(widget.avtUrl ?? 'assets/logo.png'),
+                                //   backgroundImage: url == null||url=='' ?  const NetworkImage('https://img.hoidap247.com/picture/user/20220203/tini_1643870739914.jpg') : NetworkImage(url!)
+                                //   //const AssetImage('assets/logo.png'),
+                                // ),
                               ),
                               Positioned(
                                   right: 0,

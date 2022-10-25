@@ -17,7 +17,8 @@ class MyTextField extends StatefulWidget {
   final Function(String)? onSubmitted;
   final Function(String)? onChanged;
   final Function()? onTap;
-  const MyTextField({super.key, required this.text, this.textInputType = TextInputType.text, this.maxLength = 100, this.obscureText = false, this.textCapitalization = textCapitalizationConst, this.maxLines = 1, this.minLines = 1, required this.textEditingController, this.textInputAction=TextInputAction.next, this.onSubmitted,this.onChanged, this.onTap,this.inputCheck ,this.readonly = false,this.autofocus=false});
+  final GestureDetector? icon;
+  const MyTextField({super.key, required this.text, this.textInputType = TextInputType.text, this.maxLength = 100, this.obscureText = false, this.textCapitalization = textCapitalizationConst, this.maxLines = 1, this.minLines = 1, required this.textEditingController, this.textInputAction=TextInputAction.next, this.onSubmitted,this.onChanged, this.onTap,this.inputCheck ,this.readonly = false,this.autofocus=false,this.icon});
 
 
 
@@ -44,6 +45,7 @@ class _MyTextFieldsState extends State<MyTextField> {
         readOnly: widget.readonly,
         onChanged: widget.onChanged,
         decoration: InputDecoration(
+          suffixIcon: widget.icon,
           counterText: widget.inputCheck,
           counterStyle: const TextStyle(color: Colors.blue),
           labelText: widget.text,
