@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterhw13/common/const.dart';
 import 'package:flutterhw13/common/group_image_dialog.dart';
@@ -14,7 +13,6 @@ import '../bloc/image_bloc.dart';
 import '../bloc/issue_bloc.dart';
 import '../model/drawer_model.dart' as dm;
 import '../model/status_model.dart' as sm;
-import '../services/shared_preferences_manager.dart';
 
 class NewsFeedPage extends StatefulWidget {
   final String? name;

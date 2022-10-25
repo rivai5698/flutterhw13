@@ -32,7 +32,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isPasswordChecked = true;
   bool isRePasswordChecked = true;
   bool isClicked = false;
-  bool pwInvisible = true;
+  bool pwInvisible1 = true;
+  bool pwInvisible2 = true;
 
   @override
   void setState(VoidCallback fn) {
@@ -170,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textInputAction: TextInputAction.done,
                         readonly: isClicked,
                         maxLength: 24,
-                        obscureText: pwInvisible,
+                        obscureText: pwInvisible1,
                         // onSubmitted: (String str){
                         //   register();
                         // },
@@ -190,8 +191,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                         textEditingController: _passwordController,
                         icon: GestureDetector(
-                          onTapDown: inContact,
-                          onTapUp: outContact,
+                          onTapDown: inContact1,
+                          onTapUp: outContact1,
                           child: const Icon(
                             Icons.remove_red_eye,
                           ),
@@ -204,7 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         text: 'Nhập lại mật khẩu',
                         readonly: isClicked,
                         maxLength: 24,
-                        obscureText: pwInvisible,
+                        obscureText: pwInvisible2,
                         textInputAction: TextInputAction.done,
                         onSubmitted: (String str) {
                           register();
@@ -225,8 +226,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                         textEditingController: _rewritePasswordController,
                         icon: GestureDetector(
-                          onTapDown: inContact,
-                          onTapUp: outContact,
+                          onTapDown: inContact2,
+                          onTapUp: outContact2,
                           child: const Icon(
                             Icons.remove_red_eye,
                           ),
@@ -397,15 +398,27 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  void inContact(TapDownDetails details) {
+  void inContact1(TapDownDetails details) {
     setState(() {
-      pwInvisible = false;
+      pwInvisible1 = false;
     });
   }
 
-  void outContact(TapUpDetails details) {
+  void outContact1(TapUpDetails details) {
     setState(() {
-      pwInvisible=true;
+      pwInvisible1=true;
+    });
+  }
+
+  void inContact2(TapDownDetails details) {
+    setState(() {
+      pwInvisible2 = false;
+    });
+  }
+
+  void outContact2(TapUpDetails details) {
+    setState(() {
+      pwInvisible2=true;
     });
   }
 
